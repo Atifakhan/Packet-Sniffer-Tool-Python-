@@ -1,0 +1,35 @@
+from scapy.all import sniff, IP, TCP, UDP
+
+# Function to process each packet
+def packet_callback(packet):
+    if IP in packet:
+        ip_src = packet[IP].src
+        ip_dst = packet[IP].dst
+        proto = packet[IP].proto
+        
+        # Identify protocol
+        if proto == 6:
+            protocol_name = "TCP"
+        elif proto == 17:
+            protocol_name = "UDP"
+        else:
+            protocol_name = str(proto)
+        
+        print(f"Source: {ip_src} → Destination: {ip_dst} | Protocol: {protocol_name}")
+
+        # Optional: Show payload data
+        if packet.haslayer(TCP) or packet.haslayer(UDP):
+            payload = bytes(packet[TCP].payload) if packet.haslayer(TCP) else bytes(packet[UDP].payload)
+            if payload:
+                print(f"Payload: {payload[:50]}")  # Limit to first 50 bytes
+                print("-" * 50)
+
+# Main function to start sniffing
+def start_sniffer(interface=None):
+    print("Starting Packet Sniffer... Press Ctrl+C to stop.")
+    sniff(prn=packet_callback, iface=interface, store=False)
+
+if __name__ == "__main__":
+    # For Windows, specify your interface name (example: 'Ethernet', 'Wi-Fi')
+    # Leave as None to capture from all interfaces
+    start_sniffer(interface=None)
